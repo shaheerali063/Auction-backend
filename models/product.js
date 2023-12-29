@@ -8,7 +8,9 @@ const productSchema = new mongoose.Schema({
     type: String,
     default: "No description provided",
   },
-  images: [{ type: String }],
+  images: {
+    type: Array,
+  },
   minimumBidAmount: { type: Number, required: true },
   status: {
     type: String,

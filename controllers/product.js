@@ -1,4 +1,6 @@
 const productModel = require("../models/product");
+const cloudinary = require("../config/cloudinary");
+const fs = require("fs");
 
 const getProducts = async (req, res) => {
   const products = await productModel.find();
@@ -31,21 +33,37 @@ const getProduct = async (req, res) => {
 
 const createProduct = async (req, res) => {
   const { seller, name, description, minimumBidAmount, status } = req.body;
+  const uploader = async (path) => await cloudinary.uploads(path, "Images");
   try {
-    const product = await new productModel({
-      seller: seller,
-      name: name,
-      description: description,
-      minimumBidAmount: minimumBidAmount,
-      status: status,
-    });
-    product.save();
+    if (req.method === "POST") {
+      const urls = [];
+      const files = req.files;
+      for (const file of files) {
+        const { path } = file;
+        const newPath = await uploader(path);
+        urls.push(newPath);
+        fs.unlinkSync(path);
+      }
+      const product = await new productModel({
+        seller: seller,
+        name: name,
+        description: description,
+        minimumBidAmount: minimumBidAmount,
+        status: status,
+        images: urls,
+      });
+      product.save();
 
-    return res.status(201).json({
-      success: true,
-      message: "product created sucessfully",
-      data: product,
-    });
+      return res.status(201).json({
+        success: true,
+        message: "product created successfully",
+        data: product,
+      });
+    } else {
+      return res.status(405).json({
+        err: `${req.method} method not allowed`,
+      });
+    }
   } catch (error) {
     return res.status(412).send({
       success: false,
@@ -56,30 +74,46 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   const { seller, name, description, minimumBidAmount, status } = req.body;
-  const id = req.params.id;
+  const { id } = req.params.id;
   let product = await productModel.findById(id);
+  const uploader = async (path) => await cloudinary.uploads(path, "Images");
 
   try {
     if (product) {
-      product.updateOne(
-        {
-          $set: {
-            seller: seller,
-            name: name,
-            description: description,
-            minimumBidAmount: minimumBidAmount,
-            status: status,
+      if (req.method === "PUT") {
+        const urls = [];
+        const files = req.files;
+        for (const file of files) {
+          const { path } = file;
+          const newPath = await uploader(path);
+          urls.push(newPath);
+          fs.unlinkSync(path);
+        }
+        product.updateOne(
+          {
+            $set: {
+              seller: seller,
+              name: name,
+              description: description,
+              minimumBidAmount: minimumBidAmount,
+              status: status,
+              images: urls,
+            },
           },
-        },
-        {},
-        { new: true }
-      );
+          {},
+          { new: true }
+        );
 
-      return res.status(201).json({
-        success: true,
-        message: "product updated sucessfully",
-        data: product,
-      });
+        return res.status(201).json({
+          success: true,
+          message: "product updated sucessfully",
+          data: req.body,
+        });
+      } else {
+        return res.status(405).json({
+          err: `${req.method} method not allowed`,
+        });
+      }
     } else {
       return res.status(400).json({
         success: false,

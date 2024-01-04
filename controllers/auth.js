@@ -1,15 +1,30 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const userModel = require("../models/user");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const userModel = require('../models/user');
+
+const signJwt = (user) => {
+  let jwtToken = jwt.sign(
+    {
+      email: user.email,
+      id: user.id,
+      role: user.user_type,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '1h',
+    }
+  );
+  return jwtToken;
+};
 
 const register = async (req, res) => {
-  const { fullName, email, password } = req.body;
+  const { fullName, email, password, user_type } = req.body;
 
   const verifyEmail = await userModel.findOne({ email: email });
   try {
     if (verifyEmail) {
       return res.status(403).json({
-        message: "Email already used",
+        message: 'Email already used',
       });
     } else {
       //using bcrypt to hash the password sent from the user
@@ -18,15 +33,17 @@ const register = async (req, res) => {
           fullName: fullName,
           email: email,
           password: hash,
+          user_type: user_type,
         });
 
         user
           .save()
           .then((response) => {
             return res.status(201).json({
-              message: "user successfully created!",
+              message: 'user successfully created!',
               result: response,
               success: true,
+              accessToken: signJwt(response),
             });
           })
           .catch((error) => {
@@ -55,7 +72,7 @@ const login = async (req, res) => {
     .then((user) => {
       if (!user) {
         return res.status(401).json({
-          message: "Authentication Failed",
+          message: 'Authentication Failed',
         });
       }
       getUser = user;
@@ -64,22 +81,13 @@ const login = async (req, res) => {
     .then((response) => {
       if (!response) {
         return res.status(401).json({
-          message: "Authentication Failed",
+          message: 'Authentication Failed',
         });
       } else {
-        let jwtToken = jwt.sign(
-          {
-            email: getUser.email,
-            id: getUser.id,
-          },
-          process.env.JWT_SECRET,
-          {
-            expiresIn: "1h",
-          }
-        );
         return res.status(200).json({
-          accessToken: jwtToken,
-          id: getUser.id,
+          accessToken: signJwt(getUser),
+          result: getUser,
+          success: true,
         });
       }
     })
@@ -98,7 +106,7 @@ const userProfile = async (req, res, next) => {
     const verifyUser = await userModel.findById(id);
     if (!verifyUser) {
       return res.status(403).json({
-        message: "user not found",
+        message: 'user not found',
         success: false,
       });
     } else {
@@ -123,7 +131,7 @@ const users = async (req, res) => {
     return res.status(200).json({
       data: users,
       success: true,
-      message: "users list",
+      message: 'users list',
     });
   } catch (error) {
     return res.status(401).json({

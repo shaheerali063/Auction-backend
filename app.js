@@ -14,7 +14,7 @@ var authRouter = require('./routes/auth');
 var adminRouter = require('./routes/admin');
 var auctionRouter = require('./routes/auctions');
 var app = express();
-auctionJob();
+// auctionJob();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');

@@ -1,7 +1,4 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const userModel = require('../models/user');
-const productController = require('./product');
 const auctionModel = require('../models/auction');
 
 const inviteAdmin = async (req, res) => {

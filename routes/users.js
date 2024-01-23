@@ -7,7 +7,6 @@ router.put('/update/:id', verifyToken, userController.updateUser);
 router.get('/', verifyToken, userController.getUsers);
 router.get('/show/:id', verifyToken, userController.getUser);
 router.post('/create-bid', verifyToken, userController.createBid);
-router.post('/create-auction', verifyToken, userController.createAuction);
 router.post('/list-product', verifyToken, userController.listProduct);
 router.get(
   '/product-report',

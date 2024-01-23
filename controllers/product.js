@@ -231,7 +231,7 @@ const getUserProducts = async (userId, role) => {
         .populate('seller')
         .populate('buyer');
     } else if (role === 'buyer') {
-      return await purchaseModel.find({ buyer: userId });
+      return await productModel.find({ buyer: userId });
     }
   } catch (err) {
     console.error(err);

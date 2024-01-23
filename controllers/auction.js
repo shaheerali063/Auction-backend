@@ -1,45 +1,35 @@
-const auctionModel = require('../models/auction');
+const auctionService = require('../services/auctionService');
 
-async function createAuction(auctionData, role) {
-  const { name, startTime, endTime, minimumBids } = auctionData;
-  const status = role == 'admin' ? 'approved' : 'pending';
-  const active = role == 'admin' && startTime < new Date() ? true : false;
-  try {
-    if (startTime >= endTime || minimumBids < 0) {
-      throw new Error('Wrong input parameters.');
-    }
-    const newAuction = new auctionModel({
-      name: name,
-      startTime: startTime,
-      endTime: endTime,
-      minimumBids: minimumBids,
-      active: active,
-      status: status,
-    });
-    newAuction.save();
-    return newAuction;
-  } catch (error) {
-    return res.status(412).send({
-      success: false,
-      message: error.message,
+async function createAuction(req, res) {
+  if (req.userData.role === 'buyer') {
+    return res.status(401).send({
+      message: 'You do not have permission to perform this action.',
     });
   }
+  const { newAuction, errors } = await auctionService.createAuction(
+    req.body,
+    req.userData.role
+  );
+  console.log(newAuction);
+  if (errors) {
+    return res.status(412).json(errors);
+  }
+  return res.status(200).json({
+    success: true,
+    message: 'Auction created successfully',
+    data: newAuction,
+  });
 }
 
 const getAvailableAuctions = async (req, res) => {
-  try {
-    const auctions = await auctionModel.find({ active: true });
-    return res.status(200).json({
-      success: true,
-      data: auctions.reverse(),
-    });
-    //.reverse() to get the latest data at first
-  } catch (error) {
-    return res.status(412).send({
-      success: false,
-      message: error.message,
-    });
+  const { auctions, errors } = await auctionService.getAvailableAuctions();
+  if (errors) {
+    return res.status(412).json(errors);
   }
+  return res.status(200).json({
+    success: true,
+    data: auctions,
+  });
 };
 
 const getAuctions = async (req, res) => {
@@ -48,56 +38,38 @@ const getAuctions = async (req, res) => {
       message: 'You do not have permission to perform this action.',
     });
   }
-  try {
-    const auctions = await auctionModel.find().populate('products');
-    return res.status(200).json({
-      success: true,
-      data: auctions.reverse(),
-    });
-    //.reverse() to get the latest data at first
-  } catch (error) {
-    return res.status(412).send({
-      success: false,
-      message: error.message,
-    });
+  const { auctions, errors } = await auctionService.getAuctions();
+  if (errors) {
+    return res.status(412).json(errors);
   }
+  return res.status(200).json({
+    success: true,
+    data: auctions,
+  });
 };
 
 const getAuction = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const auction = await auctionModel.findById(id);
-
-    return res.status(200).json({
-      success: true,
-      data: auction,
-    });
-    //.reverse() to get the latest data at first
-  } catch (error) {
-    return res.status(412).send({
-      success: false,
-      message: error.message,
-    });
+  const { id } = req.params;
+  const { auction, errors } = await auctionService.getAuctionById(id);
+  if (errors) {
+    return res.status(412).json(errors);
   }
+  return res.status(200).json({
+    success: true,
+    data: auction,
+  });
 };
 
 const getAuctionProducts = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const auction = await auctionModel.findById(id).populate('products');
-    console.log(auction);
-
-    return res.status(200).json({
-      success: true,
-      data: auction,
-    });
-    //.reverse() to get the latest data at first
-  } catch (error) {
-    return res.status(412).send({
-      success: false,
-      message: error.message,
-    });
+  const { id } = req.params;
+  const { auction, errors } = await auctionService.getAuctionProducts(id);
+  if (errors) {
+    return res.status(412).json(errors);
   }
+  return res.status(200).json({
+    success: true,
+    data: auction,
+  });
 };
 
 module.exports = {

@@ -32,11 +32,12 @@ module.exports = () => {
         },
         { new: true }
       );
-      await auctionModel.findOneAndUpdate(
-        { _id: auction._id },
-        { $pull: { products: product._id } }
-      );
+
       if (updatedProduct) {
+        await auctionModel.findOneAndUpdate(
+          { _id: auction._id },
+          { $pull: { products: product._id } }
+        );
         const purchasedProduct = new purchaseModel({
           product: updatedProduct._id,
           seller: updatedProduct.seller,
@@ -76,6 +77,7 @@ module.exports = () => {
         await updateProductAndCreatePurchase(product, auction, bids[0].buyer);
       }
     } else {
+      if (!ended) return;
       try {
         await productModel.findOneAndUpdate(
           { _id: product._id },

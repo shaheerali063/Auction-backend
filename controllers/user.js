@@ -164,31 +164,6 @@ async function autoBidding() {
   /* TODO: Requirement not clear. if multiple users has opted for the auto bid. whose bid should be placed first*/
 }
 
-const createAuction = async (req, res) => {
-  try {
-    if (req.userData.role !== 'buyer') {
-      newAuction = await auctionController.createAuction(
-        req.body,
-        req.userData.role
-      );
-      return res.status(200).json({
-        success: true,
-        message: 'auction created successfully',
-        data: newAuction,
-      });
-    } else {
-      return res.status(401).send({
-        message: 'Only sellers and admins can create auctions.',
-      });
-    }
-  } catch (err) {
-    return res.status(412).send({
-      success: false,
-      message: err.message,
-    });
-  }
-};
-
 const getSellerProductReport = async (req, res) => {
   try {
     if (req.userData.role === 'buyer') {
@@ -264,7 +239,6 @@ const fetchProductBids = async (req, res) => {
 
 module.exports = {
   createBid,
-  createAuction,
   updateUser,
   listProduct,
   getSellerProductReport,

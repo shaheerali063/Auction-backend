@@ -4,7 +4,8 @@ var router = express.Router();
 const auctionController = require('../controllers/auction');
 const verifyToken = require('../middleware/auth');
 
-router.get('/all-auctions', verifyToken, auctionController.getAuctions);
+router.get('/', verifyToken, auctionController.getAuctions);
+router.post('/', verifyToken, auctionController.createAuction);
 router.get(
   '/available-auctions',
   verifyToken,

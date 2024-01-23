@@ -11,7 +11,7 @@ const signJwt = (user) => {
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: '1h',
+      expiresIn: '3d',
     }
   );
   return jwtToken;
@@ -99,51 +99,7 @@ const login = async (req, res) => {
     });
 };
 
-const userProfile = async (req, res, next) => {
-  const { id } = req.params;
-
-  try {
-    const verifyUser = await userModel.findById(id);
-    if (!verifyUser) {
-      return res.status(403).json({
-        message: 'user not found',
-        success: false,
-      });
-    } else {
-      return res.status(200).json({
-        message: `user ${verifyUser.fullName}`,
-        data: verifyUser,
-        success: true,
-        userData: req.userData,
-      });
-    }
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-const users = async (req, res) => {
-  try {
-    const users = await userModel.find();
-    return res.status(200).json({
-      data: users,
-      success: true,
-      message: 'users list',
-    });
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
 module.exports = {
   register,
   login,
-  userProfile,
-  users,
 };
